@@ -1,16 +1,18 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/WebServices/GenericResource.java to edit this template
- */
 package osrm;
 
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.UriInfo;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.UriInfo;
 
 /**
  * REST Web Service
@@ -31,21 +33,62 @@ public class OsrmService {
 
     /**
      * Retrieves representation of an instance of osrm.OsrmService
+     *
      * @return an instance of java.lang.String
      */
     @GET
-    @Produces(jakarta.ws.rs.core.MediaType.APPLICATION_JSON)
-    public String getJson() {
-        //TODO return proper representation object
-        throw new UnsupportedOperationException();
+    @Produces(javax.ws.rs.core.MediaType.APPLICATION_JSON)
+    public String getJson(@QueryParam("coords") String coords) {
+
+        // Input validation
+        if (coords == null) {
+            return "{\"error\":\"coords are empty\"}";
+        }
+        try {
+            // Build OSRM URL for Table API
+            String baseUrl = "http://router.project-osrm.org/table/v1/driving/";
+            String options = "?annotations=distance,duration";
+            String url = baseUrl + coords + options;
+
+            // Create HTTP connection to the OSRM API
+            URL osrmUrl = new URL(url);
+            HttpURLConnection conn = (HttpURLConnection) osrmUrl.openConnection();
+            conn.setRequestMethod("GET");
+
+            int status = conn.getResponseCode();
+            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            String inputLine;
+            StringBuilder content = new StringBuilder();
+            while ((inputLine = in.readLine()) != null) {
+                content.append(inputLine);
+            }
+            in.close();
+            conn.disconnect();
+
+            // If OSRM returned HTTP 200, parse the response
+            if (status == 200) {
+                ObjectMapper mapper = new ObjectMapper();
+                Response osrmResponse = mapper.readValue(content.toString(), Response.class);
+
+                // Return the parsed object as JSON
+                return mapper.writeValueAsString(osrmResponse);
+            } else {
+                // OSRM API returned an error status code
+                return String.format("{\"error\":\"OSRM API returned status %d\"}", status);
+            }
+        } catch (Exception e) {
+            // Handle network, parsing, or other exceptions as a JSON error
+            return String.format("{\"error\":\"Exception: %s\"}", e.toString());
+        }
     }
 
     /**
      * PUT method for updating or creating an instance of OsrmService
+     *
      * @param content representation for the resource
      */
     @PUT
-    @Consumes(jakarta.ws.rs.core.MediaType.APPLICATION_JSON)
+    @Consumes(javax.ws.rs.core.MediaType.APPLICATION_JSON)
     public void putJson(String content) {
     }
 }

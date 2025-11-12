@@ -1,4 +1,5 @@
 
+import osrm.Response;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
@@ -40,7 +41,7 @@ public class Client {
         HttpResponse<String> response;
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() == 200) {
-            
+
             // confirming JSON response contains distances array
             System.out.println(response.body());
 
