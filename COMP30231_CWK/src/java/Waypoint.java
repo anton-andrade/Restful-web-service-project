@@ -1,4 +1,5 @@
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 
 /*
@@ -10,6 +11,7 @@ import java.util.List;
  *
  * @author Antho
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Waypoint {
     private List<Double> location;
     private String name;
