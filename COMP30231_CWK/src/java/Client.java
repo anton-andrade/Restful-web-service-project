@@ -20,11 +20,11 @@ public class Client {
 
     public static void main(String[] args) throws IOException, InterruptedException, URISyntaxException {
 
-        // build URI  
-        String baseUrl = "http://router.project-osrm.org/table/v1/driving/";
+        // build URI 
+        // changed to call local REST API 
+        String baseUrl = "http://localhost:9090/COMP30231_CWK/webresources/osrm?coords=";
         String coordinates = "13.388860,52.517037;13.397634,52.529407";
-        String options = "?annotations=distance,duration";
-        String url = baseUrl + coordinates + options;
+        String url = baseUrl + coordinates;
 
         // create HTTP Client
         HttpClient client = HttpClient.newHttpClient();
